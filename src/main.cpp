@@ -2144,7 +2144,7 @@ int64_t GetBlockValue(int nHeight)
 		}else if (nHeight <= 2400000 && nHeight > 600000) { //1250 days        		 72,059,799 reached
 			nSubsidy = 24 * COIN;
 		}else if(                      nHeight > 2400000) { //Till max supply          
-			nSubsidy = 12 * COIN;   //1616.91 days will maxxed supply is reached. Max supply is 100million coins reached after 8.99years
+			nSubsidy = 12 * COIN;   //1616.91 days will maxxed supply be reached. Max supply is 100million coins reached after 8.99years
 		}
 		int64_t nMoneySupply = chainActive.Tip()->nMoneySupply;
 
@@ -2430,18 +2430,22 @@ bool IsTreasuryBlock(int nHeight)
 int64_t GetTreasuryAward(int nHeight)
 {
     if (IsTreasuryBlock(nHeight)) {
-      return 13824 * COIN; //13,824 on very first block  1440 * 96(block reward) * 0.1 - 10 coins to pay stakers = 13814 actual coins a day or 1440 blocks
-	} else if (nHeight <= 150000 && nHeight > 60000) { // 34.72 days to reach 60,000 blocks
-		return 13824 * COIN; //13,824 on very first block  1440 * 96 * 0.1 -10 = 13814 actual coins a day
-    } else if (nHeight <= 600000 && nHeight > 150000) {
-        return 6912 * COIN; //6,912 aday at 10% 48 coins per block
-    } else if (nHeight <= 2400000 && nHeight > 600000) {
-        return 3456 * COIN; //3,456 aday at 10% 24 coins per block
-    } else if (                     nHeight > 2400000) {
-        return 1728 * COIN; //1,728 aday at 10% 12 coins per block on final phase
-    } else {
+      //return 13824 * COIN; //13,824 on very first block  1440 * 96(block reward) * 0.1 - 10 coins to pay stakers = 13814 actual coins a day or 1440 blocks
+	  
+		if (nHeight <= 150000 && nHeight >= 60000) { // 34.72 days to reach 60,000 blocks
+			return 13824 * COIN; //13,824 on very first block  1440 * 96 * 0.1 -10 = 13814 actual coins a day
+		} else if (nHeight <= 600000 && nHeight > 150000) {
+			return 6912 * COIN; //6,912 aday at 10% 48 coins per block
+		} else if (nHeight <= 2400000 && nHeight > 600000) {
+			return 3456 * COIN; //3,456 aday at 10% 24 coins per block
+		} else if (                     nHeight > 2400000) {
+			return 1728 * COIN; //1,728 aday at 10% 12 coins per block on final phase
+		} else {
+			return 13824;
+		}
     }
-    return 0;
+	else 
+		return 0;
 }
 
 bool IsInitialBlockDownload()
@@ -6505,9 +6509,17 @@ int ActiveProtocol()
     // SPORK_15 is used for 70911. Nodes < 70911 don't see it and still get their protocol version via SPORK_14 and their
     // own ModifierUpgradeBlock()
 
-    if (IsSporkActive(SPORK_15_NEW_PROTOCOL_ENFORCEMENT_2))
+	// Before devfees fix
+    /*
+	if (IsSporkActive(SPORK_15_NEW_PROTOCOL_ENFORCEMENT_2))
         return MIN_PEER_PROTO_VERSION_AFTER_ENFORCEMENT;
     return MIN_PEER_PROTO_VERSION_BEFORE_ENFORCEMENT;
+	*/
+	
+	 if(chainActive.Height() >= SOFT_FORK_VERSION_150)
+        return MIN_PEER_PROTO_VERSION_DEVFEESFIX_UPGRADE;
+    
+	return MIN_PEER_PROTO_VERSION_BEFORE_ENFORCEMENT;
 }
 
 // requires LOCK(cs_vRecvMsg)
